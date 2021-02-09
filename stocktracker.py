@@ -56,25 +56,9 @@ def main():
         for ticker in searchedTickerList:
             printStockData(getStockData(ticker))
         print("Current time : " + getCurrentTime())
-        time.sleep(25)
+        time.sleep(60)
         os.system('cls' if os.name == 'nt' else 'clear')
 
 main()
 
-"""
 
-WORK IN PROGESS - DATABASE
-
-def createDatebase():
-    conn = sqlite3.connect('stock.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE PORTFOLIO
-             ([generated_id] INTEGER PRIMARY KEY,[Ticker] text, [Quantity] integer, [BookPrice] float, [MarketPrice] float, [Variance] float, [DailyVariance])''')
-    c.execute('''CREATE TABLE STOCKS
-             ([generated_id] INTEGER PRIMARY KEY,[Ticker] text, [Price] float, [PreviousClosePrice] float, [Variance] float)''')
-    conn.commit()
-
-if not os.path.isfile("stock.db"):
-    createDatebase()
-
-"""
