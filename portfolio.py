@@ -2,6 +2,7 @@ from consolemenu import *
 from consolemenu.items import *
 import os
 import sqlite3
+import datetime
 
 def addTransaction():
     if not os.path.isfile("portfolio.sqlite"):
@@ -13,6 +14,9 @@ def addTransaction():
     while not entryAdded:
         # Stock ticker
         ticker = stockTickerInput()
+
+        # Transaction date
+        date = transactionDateInput()
         
         # Stock currency
         currency = stockCurrencyInput()
@@ -56,6 +60,19 @@ def stockTickerInput():
 
         except ValueError as reason:
             print(reason)
+
+def transactionDateInput():
+    inputIncomplete = True
+    while inputIncomplete == True:
+        try:
+            date_entry = input('Enter a date in YYYY-MM-DD format : ')
+            year, month, day = map(int, date_entry.split('-'))
+            date = datetime.date(year, month, day)
+            inputIncomplete = False
+            return date
+
+        except ValueError:
+            print("Wrong date")
 
 def stockCurrencyInput():
     inputIncomplete = True
