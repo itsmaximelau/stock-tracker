@@ -35,10 +35,17 @@ def addTransaction():
 
         # Save entry
         stockInformations = (transType, ticker, date, quantity, currency, price, brokerageFee, netPrice) 
-        saveToDatabase(stockInformations)
+        saveToDatabasePortfolio(stockInformations)
 
         #End loop
         entryAdded = True
+        
+def addToWatchList():
+    # Stock ticker
+    ticker = stockTickerInput()
+    # Save entry
+    stockInformations = (ticker)
+    saveToDatabaseWatchList([stockInformations])
 
 def viewTransactions():
     #print("No transactions found... Please add transactions before trying to view transactions. You will be redirected to main menu in 10 seconds.")
@@ -56,9 +63,16 @@ def deleteTransaction():
 def choosePortfolioCurrencyDisplay():
     pass
 
-def saveToDatabase(entry):
+def saveToDatabasePortfolio(entry):
     conn = sqlite3.connect('portfolio.sqlite')  
     sql = '''INSERT INTO portfolio (TransType, Ticker, Date, Quantity, Currency, BookPrice, BrokerageFee, NetPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
+    c = conn.cursor()
+    c.execute(sql, entry)
+    conn.commit()
+    
+def saveToDatabaseWatchList(entry):
+    conn = sqlite3.connect('portfolio.sqlite')  
+    sql = '''INSERT INTO watchlist (Ticker) VALUES (?)'''
     c = conn.cursor()
     c.execute(sql, entry)
     conn.commit()
@@ -96,7 +110,18 @@ def getPortfolioStockData(ticker):
     return data
 
 def getTickersInWatchlist():
-    return ["TSLA","AAPL"]
+    conn = sqlite3.connect('portfolio.sqlite')
+    c = conn.cursor()
+    sql = '''SELECT DISTINCT Ticker FROM watchlist'''
+    c.execute(sql)
+    data = c.fetchall()
+    
+    ticker_list = []
+    
+    for ticker in data:
+        ticker_list.append(ticker[0])
+   
+    return ticker_list
 
 def fetchTransactions(): 
     conn = sqlite3.connect('portfolio.sqlite')
@@ -238,4 +263,6 @@ def createDatebase():
     c = conn.cursor()
     c.execute('''CREATE TABLE portfolio
              ([id] INTEGER PRIMARY KEY, [TransType] text, [Ticker] text, [Date] text, [Quantity] integer,[Currency] text,[BookPrice] float, [BrokerageFee] float, [NetPrice] float)''')
+    c.execute('''CREATE TABLE watchlist
+             ([id] INTEGER PRIMARY KEY, [Ticker] text)''')
     conn.commit()

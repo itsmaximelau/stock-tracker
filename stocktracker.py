@@ -16,13 +16,13 @@ def printPortfolioData(data):
     main_table = PrettyTable(["Ticker","Daily P/L ($)","Daily P/L (%)","Total P/L ($)","Total P/L (%)"])
     for ticker, ticker_values in data.items():
         
-        dayVarianceStock = ticker_values["dayVarianceStock"]
-        if dayVarianceStock < 0:
-            dayVarianceStock = "-${:.2f}".format(abs(dayVarianceStock))
+        dayVariancePortfolio = ticker_values["dayVariancePortfolio"]
+        if dayVariancePortfolio < 0:
+            dayVariancePortfolio = "-${:.2f}".format(abs(dayVariancePortfolio))
         else:
-            dayVarianceStock = "${:.2f}".format(dayVarianceStock)
+            dayVariancePortfolio = "${:.2f}".format(dayVariancePortfolio)
         
-        dayVariancePercentageStock = "{:.2f}%".format(float(ticker_values["dayVariancePercentageStock"]))
+        dayVariancePercentagePortfolio = "{:.2f}%".format(float(ticker_values["dayVariancePercentagePortfolio"]))
         
         totalVariancePortfolio = ticker_values["totalVariancePortfolio"]
         if totalVariancePortfolio < 0:
@@ -33,12 +33,13 @@ def printPortfolioData(data):
         totalVariancePercentagePortfolio = "{:.2f}%".format(float(ticker_values["totalVariancePercentagePortfolio"]))
         
         #Print out table line
-        main_table.add_row([ticker,dayVarianceStock,dayVariancePercentageStock,totalVariancePortfolio,totalVariancePercentagePortfolio])
+        main_table.add_row([ticker,dayVariancePortfolio,dayVariancePercentagePortfolio,totalVariancePortfolio,totalVariancePercentagePortfolio])
              
     print(main_table)
     print()
 
 def printWatchlistData(data):
+    print()
     print("WATCHLIST")
     main_table = PrettyTable(["Ticker","Current price","Previous close price","Daily variance ($)","Daily variance (%)"])
     for ticker, ticker_values in data.items():
@@ -69,19 +70,21 @@ def printWatchlistData(data):
 def mergeStockData(ticker):
     databaseData = portfolio.getPortfolioStockData(ticker)
     currentData = yahooFinanceQuery.getStockData(ticker)
-
+    
+    price = currentData["current_price"]
     quantity = databaseData["quantity"]
     bookNetPrice = databaseData["netPrice"]
-    price = currentData["current_price"]
-    previousClosePrice = currentData["previous_close_price"]
-    dayVarianceStock = round(previousClosePrice-price,2)
-    dayVariancePercentageStock = str(round((dayVarianceStock/previousClosePrice)*100,2))
-    dayVariancePortfolio = round(quantity * dayVarianceStock,2)
-    dayVariancePercentagePortfolio = 0
     bookTotalCost = round(quantity * bookNetPrice,2)
     currentTotalValue = round(quantity * price,2)
+    
+    previousClosePrice = currentData["previous_close_price"]
+    dayVarianceStock = round(price-previousClosePrice,2)
+    dayVariancePercentageStock = round((dayVarianceStock/previousClosePrice)*100,2)
+    dayVariancePortfolio = round(quantity * dayVarianceStock,2)
+    dayVariancePercentagePortfolio = round((dayVariancePortfolio/currentTotalValue)*100,2)
+
     totalVariancePortfolio = round(currentTotalValue - bookTotalCost,2)
-    totalVariancePercentagePortfolio = 0
+    totalVariancePercentagePortfolio = round((totalVariancePortfolio/bookTotalCost)*100,2)
     
     data = {
         "ticker" : ticker,
@@ -107,8 +110,8 @@ def launchTracker():
             data = mergeStockData(ticker)
             data_dict = {
                 ticker : {
-                    "dayVarianceStock" : data["dayVarianceStock"],
-                    "dayVariancePercentageStock" : data["dayVariancePercentageStock"],
+                    "dayVariancePortfolio" : data["dayVariancePortfolio"],
+                    "dayVariancePercentagePortfolio" : data["dayVariancePercentagePortfolio"],
                     "totalVariancePortfolio" : data["totalVariancePortfolio"],
                     "totalVariancePercentagePortfolio" : data["totalVariancePercentagePortfolio"]
                 }
@@ -137,7 +140,10 @@ def launchTracker():
         print("Last refresh : " + getCurrentTime())
         
         # Refresh rate
-        time.sleep(60)
+        time.sleep(40)
         
         # Refresh interface
         os.system('cls' if os.name == 'nt' else 'clear')
+        
+if __name__ == "__main__":
+    launchTracker()
