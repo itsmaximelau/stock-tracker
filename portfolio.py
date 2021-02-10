@@ -1,5 +1,4 @@
 import consolemenu as cm
-import os
 import sqlite3
 import datetime
 
@@ -29,10 +28,13 @@ def addTransaction():
         # Brokerage Fee
         brokerageFee = brokerageFeeInput()
 
+        # Net price calculation
+        netPrice = float(price) + float(brokerageFee)
+        
         # Validation completed at this point
 
         # Save entry
-        stockInformations = (transType, ticker, date, quantity, currency, price, brokerageFee) 
+        stockInformations = (transType, ticker, date, quantity, currency, price, brokerageFee, netPrice) 
         saveToDatabase(stockInformations)
 
         #End loop
@@ -56,13 +58,45 @@ def choosePortfolioCurrencyDisplay():
 
 def saveToDatabase(entry):
     conn = sqlite3.connect('portfolio.sqlite')  
-    sql = '''INSERT INTO portfolio (TransType, Ticker, Date, Quantity, Currency, BookPrice, BrokerageFee) VALUES (?, ?, ?, ?, ?, ?, ?)'''
+    sql = '''INSERT INTO portfolio (TransType, Ticker, Date, Quantity, Currency, BookPrice, BrokerageFee, NetPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
     c = conn.cursor()
     c.execute(sql, entry)
     conn.commit()
 
 def deleteFromDatabase():
     pass
+
+def getTickersInPortfolio():
+    conn = sqlite3.connect('portfolio.sqlite')
+    c = conn.cursor()
+    c.execute('''SELECT DISTINCT Ticker FROM  portfolio ''')
+    tickers = c.fetchall()
+    tickersList = []
+    for ticker in tickers:
+        tickersList.append(ticker[0])
+        
+    return tickersList
+
+def getPortfolioStockData(ticker):
+    conn = sqlite3.connect('portfolio.sqlite')
+    c = conn.cursor()
+    sql = '''SELECT Ticker, SUM(Quantity), SUM(NetPrice) FROM portfolio WHERE Ticker = (?) GROUP BY Ticker'''
+    c.execute(sql, [ticker])
+    data = c.fetchall()
+    
+    quantity = data[0][1]
+    netPrice = data[0][2]
+    
+    data = {
+        "ticker" : ticker,
+        "quantity" : quantity,
+        "netPrice" : netPrice
+    }
+
+    return data
+
+def getTickersInWatchlist():
+    return ["TSLA","AAPL"]
 
 def fetchTransactions(): 
     conn = sqlite3.connect('portfolio.sqlite')
@@ -199,38 +233,9 @@ def brokerageFeeValidation(brokerageFee):
     if float(brokerageFee) < 0:
         raise ValueError("Error - Please select a valid fee (must be greater or equal to 0).")
 
-def launchStockTracker():
-    pass
-
 def createDatebase():
     conn = sqlite3.connect('portfolio.sqlite')
     c = conn.cursor()
     c.execute('''CREATE TABLE portfolio
-             ([id] INTEGER PRIMARY KEY, [TransType] text, [Ticker] text, [Date] text, [Quantity] integer,[Currency] text,[BookPrice] float, [BrokerageFee] float)''')
+             ([id] INTEGER PRIMARY KEY, [TransType] text, [Ticker] text, [Date] text, [Quantity] integer,[Currency] text,[BookPrice] float, [BrokerageFee] float, [NetPrice] float)''')
     conn.commit()
-
-# Create DB
-if not os.path.isfile("portfolio.sqlite"):
-    createDatebase()
-
-### CLI MENU ###
-menu = cm.ConsoleMenu("Stock Tracker & Portfolio Manager")
-
-#Portfolio
-addTransaction = cm.items.FunctionItem("Add a transaction", addTransaction)
-deleteTransaction = cm.items.FunctionItem("Delete a transaction", deleteTransaction)
-viewTransactions = cm.items.FunctionItem("View transactions", viewTransactions)
-choosePortfolioCurrencyDisplay = cm.items.FunctionItem("Choose portfolio currency displayed", choosePortfolioCurrencyDisplay)
-
-#Stock tracker
-launchStockTracker = cm.items.FunctionItem("Launch live stock tracker", launchStockTracker)
-
-menu.append_item(addTransaction)
-menu.append_item(deleteTransaction)
-menu.append_item(viewTransactions)
-menu.append_item(choosePortfolioCurrencyDisplay)
-menu.append_item(launchStockTracker)
-
-menu.show()
-
-
