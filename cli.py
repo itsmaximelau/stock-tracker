@@ -1,8 +1,78 @@
-import consolemenu as cm
-import sqlite3
 import datetime
+import time
+from prettytable import PrettyTable
 
-def addTransaction():
+def print_portfolio_data(database,portfolio):    
+    print("PORTFOLIO")
+    main_table = PrettyTable(["Ticker","Daily P/L ($)","Daily P/L (%)","Total P/L ($)","Total P/L (%)"])
+    
+    print(portfolio.tickers)
+    
+    for ticker in portfolio.tickers:
+        stock = stocktracker.StockPortfolioData(ticker,db)
+        
+        day_variance_portfolio = format_currency(stock.day_variance_portfolio)
+        day_variance_percentage_portfolio = format_percentage(stock.day_variance_percentage_portfolio)
+        total_variance_portfolio = format_currency(stock.total_variance_portfolio)
+        total_variance_percentage_portfolio = format_percentage(stock.total_variance_percentage_portfolio)
+
+        main_table.add_row([ticker,day_variance_portfolio,day_variance_percentage_portfolio,total_variance_portfolio,total_variance_percentage_portfolio])
+
+    print(main_table)
+    print()
+    
+def printWatchlistData(data):
+    print()
+    print("WATCHLIST")
+    main_table = PrettyTable(["Ticker","Current price","Previous close price","Daily variance ($)","Daily variance (%)"])
+    for ticker, ticker_values in data.items():
+        current_price = ticker_values["current_price"]
+        if current_price < 0:
+            current_price = "-${:.2f}".format(abs(current_price))
+        else:
+            current_price = "${:.2f}".format(current_price)
+        
+        previous_close_price = ticker_values["previous_close_price"]
+        if previous_close_price < 0:
+            previous_close_price = "-${:.2f}".format(abs(previous_close_price))
+        else:
+            previous_close_price = "${:.2f}".format(previous_close_price)        
+        
+        day_variance = ticker_values["day_variance"]
+        if day_variance < 0:
+            day_variance = "-${:.2f}".format(abs(day_variance))
+        else:
+            day_variance = "${:.2f}".format(day_variance)              
+        
+        day_variance_percent = "{:.2f}%".format(float(ticker_values["day_variance_percent"]))
+        
+        main_table.add_row([ticker,current_price,previous_close_price,day_variance,day_variance_percent])
+    print(main_table)
+    print()
+    
+    
+    
+    
+    
+    
+def format_percentage(data):
+    return "{:.2f}%".format(float(data))
+
+def format_currency(data):
+    if data < 0:
+        data = "-${:.2f}".format(abs(data))
+    else:
+        data = "${:.2f}".format(data)
+    return data
+
+def get_current_time():
+    return datetime.now().strftime("%H:%M:%S")
+
+
+
+
+
+def add_transaction(database, portfolio):
     entryAdded = False
 
     # Begining of loop until end of entry
@@ -34,101 +104,57 @@ def addTransaction():
         # Validation completed at this point
 
         # Save entry
-        stockInformations = (transType, ticker, date, quantity, currency, price, brokerageFee, netPrice) 
-        saveToDatabasePortfolio(stockInformations)
+        transaction = (str(transType), str(ticker), str(date), int(quantity), str(currency), float(price), float(brokerageFee), float(netPrice)) 
+        database.save_to_database_portfolio(transaction)
+        
+        portfolio.update_tickers()
+        
 
         #End loop
         entryAdded = True
+
+def delete_transaction(database, portfolio):
+    pass
+
+def view_transactions(database):
+    user_input= False
+
+    # Begining of loop until user input
+    while not user_input:
+        print("TRANSACTIONS")
+        main_table = PrettyTable(["Id","Trans. type","Ticker","Date","Quantity","Currency","Book Price", "Brokerage fee", "Net price"])
         
+        for ticker in database.get_portfolio_transactions():
+            main_table.add_row([ticker[0],ticker[1],ticker[2],ticker[3],ticker[4],ticker[5],format_currency(ticker[6]),format_currency(ticker[7]),format_currency(ticker[8])])
+        
+        print(main_table)
+        input("Press any key to go back to main menu.")
+        user_input = True
+
+        """
+        stock = stocktracker.StockPortfolioData(ticker,db)
+        
+        day_variance_portfolio = format_currency(stock.day_variance_portfolio)
+        day_variance_percentage_portfolio = format_percentage(stock.day_variance_percentage_portfolio)
+        total_variance_portfolio = format_currency(stock.total_variance_portfolio)
+        total_variance_percentage_portfolio = format_percentage(stock.total_variance_percentage_portfolio)
+
+        main_table.add_row([ticker,day_variance_portfolio,day_variance_percentage_portfolio,total_variance_portfolio,total_variance_percentage_portfolio])
+        """
+
+
+def add_to_watchlist(database, watchlist):
+    pass
+
+def choose_portfolio_currency_display(database):
+    pass
+    
 def addToWatchList():
     # Stock ticker
     ticker = stockTickerInput()
     # Save entry
     stockInformations = (ticker)
     saveToDatabaseWatchList([stockInformations])
-
-def viewTransactions():
-    #print("No transactions found... Please add transactions before trying to view transactions. You will be redirected to main menu in 10 seconds.")
-
-    transactions = fetchTransactions()
-
-    for row in transactions:
-        print(row)
-
-    input("Press any key to go back to main menu.")
-
-def deleteTransaction():
-    pass
-
-def choosePortfolioCurrencyDisplay():
-    pass
-
-def saveToDatabasePortfolio(entry):
-    conn = sqlite3.connect('portfolio.sqlite')  
-    sql = '''INSERT INTO portfolio (TransType, Ticker, Date, Quantity, Currency, BookPrice, BrokerageFee, NetPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
-    c = conn.cursor()
-    c.execute(sql, entry)
-    conn.commit()
-    
-def saveToDatabaseWatchList(entry):
-    conn = sqlite3.connect('portfolio.sqlite')  
-    sql = '''INSERT INTO watchlist (Ticker) VALUES (?)'''
-    c = conn.cursor()
-    c.execute(sql, entry)
-    conn.commit()
-
-def deleteFromDatabase():
-    pass
-
-def getTickersInPortfolio():
-    conn = sqlite3.connect('portfolio.sqlite')
-    c = conn.cursor()
-    c.execute('''SELECT DISTINCT Ticker FROM  portfolio ''')
-    tickers = c.fetchall()
-    tickersList = []
-    for ticker in tickers:
-        tickersList.append(ticker[0])
-        
-    return tickersList
-
-def getPortfolioStockData(ticker):
-    conn = sqlite3.connect('portfolio.sqlite')
-    c = conn.cursor()
-    sql = '''SELECT Ticker, SUM(Quantity), SUM(NetPrice) FROM portfolio WHERE Ticker = (?) GROUP BY Ticker'''
-    c.execute(sql, [ticker])
-    data = c.fetchall()
-    
-    quantity = data[0][1]
-    netPrice = data[0][2]
-    
-    data = {
-        "ticker" : ticker,
-        "quantity" : quantity,
-        "netPrice" : netPrice
-    }
-
-    return data
-
-def getTickersInWatchlist():
-    conn = sqlite3.connect('portfolio.sqlite')
-    c = conn.cursor()
-    sql = '''SELECT DISTINCT Ticker FROM watchlist'''
-    c.execute(sql)
-    data = c.fetchall()
-    
-    ticker_list = []
-    
-    for ticker in data:
-        ticker_list.append(ticker[0])
-   
-    return ticker_list
-
-def fetchTransactions(): 
-    conn = sqlite3.connect('portfolio.sqlite')
-    c = conn.cursor()
-    c.execute('''SELECT * FROM  portfolio ''')
-    rows = c.fetchall()
-    return rows
 
 def transactionTypeInput():
     inputIncomplete = True
@@ -257,12 +283,3 @@ def stockPriceValidation(price):
 def brokerageFeeValidation(brokerageFee):
     if float(brokerageFee) < 0:
         raise ValueError("Error - Please select a valid fee (must be greater or equal to 0).")
-
-def createDatebase():
-    conn = sqlite3.connect('portfolio.sqlite')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE portfolio
-             ([id] INTEGER PRIMARY KEY, [TransType] text, [Ticker] text, [Date] text, [Quantity] integer,[Currency] text,[BookPrice] float, [BrokerageFee] float, [NetPrice] float)''')
-    c.execute('''CREATE TABLE watchlist
-             ([id] INTEGER PRIMARY KEY, [Ticker] text)''')
-    conn.commit()

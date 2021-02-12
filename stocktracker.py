@@ -1,110 +1,164 @@
-import bs4
 import os
 import time
 from datetime import datetime
 import bs4
 from urllib.request import urlopen
-import yahooFinanceQuery
-import portfolio
+import yahoo_finance_query
 from prettytable import PrettyTable
+import sqlite3
 
-def getCurrentTime():
-    return datetime.now().strftime("%H:%M:%S")
+class DetainedStock:
+    def __init__(self,ticker,db) -> None:
+        self.quantity, self.book_net_price = db.get_portfolio_stock_summary(ticker)
 
-def printPortfolioData(data):
-    print("PORTFOLIO")
-    main_table = PrettyTable(["Ticker","Daily P/L ($)","Daily P/L (%)","Total P/L ($)","Total P/L (%)"])
-    for ticker, ticker_values in data.items():
+class StockPortfolioData():
+    def __init__(self,ticker,db) -> None:
         
-        dayVariancePortfolio = ticker_values["dayVariancePortfolio"]
-        if dayVariancePortfolio < 0:
-            dayVariancePortfolio = "-${:.2f}".format(abs(dayVariancePortfolio))
-        else:
-            dayVariancePortfolio = "${:.2f}".format(dayVariancePortfolio)
+        self.stock = yahoo_finance_query.Stock(ticker)
+        self.detained_stock = DetainedStock(ticker,db)
         
-        dayVariancePercentagePortfolio = "{:.2f}%".format(float(ticker_values["dayVariancePercentagePortfolio"]))
+        self.price = self.stock.current_price
+        self.quantity = self.detained_stock.quantity
+        self.book_net_price = self.detained_stock.book_net_price
+        self.book_total_cost = round(self.quantity * self.book_net_price,2)
+        self.current_total_value = round(self.quantity * self.price,2)
         
-        totalVariancePortfolio = ticker_values["totalVariancePortfolio"]
-        if totalVariancePortfolio < 0:
-            totalVariancePortfolio = "-${:.2f}".format(abs(totalVariancePortfolio))
-        else:
-            totalVariancePortfolio = "${:.2f}".format(totalVariancePortfolio)
-        
-        totalVariancePercentagePortfolio = "{:.2f}%".format(float(ticker_values["totalVariancePercentagePortfolio"]))
-        
-        #Print out table line
-        main_table.add_row([ticker,dayVariancePortfolio,dayVariancePercentagePortfolio,totalVariancePortfolio,totalVariancePercentagePortfolio])
-             
-    print(main_table)
-    print()
+        self.previous_close_price = self.stock.previous_close_price
+        self.day_variance_stock = round(self.price-self.previous_close_price,2)
+        self.day_variance_percentage_stock = round((self.day_variance_stock/self.previous_close_price)*100,2)
+        self.day_variance_portfolio = round(self.quantity * self.day_variance_stock,2)
+        self.day_variance_percentage_portfolio = round((self.day_variance_portfolio/self.current_total_value)*100,2)
 
-def printWatchlistData(data):
-    print()
-    print("WATCHLIST")
-    main_table = PrettyTable(["Ticker","Current price","Previous close price","Daily variance ($)","Daily variance (%)"])
-    for ticker, ticker_values in data.items():
-        current_price = ticker_values["current_price"]
-        if current_price < 0:
-            current_price = "-${:.2f}".format(abs(current_price))
+        self.total_variance_portfolio = round(self.current_total_value - self.book_total_cost,2)
+        self.total_variance_percentage_portfolio = round((self.total_variance_portfolio/self.book_total_cost)*100,2)
+
+class Portfolio:
+    def __init__(self,database) -> None:
+        self.database = database
+        self.tickers = self.database.get_portfolio_tickers()
+        
+    def update_tickers(self):
+        self.tickers = self.database.get_portfolio_tickers()
+
+class Watchlist:
+    def __init__(self,database) -> None:
+        self.database = database
+        self.tickers = self.database.get_watchlist_tickers()
+        
+    def update_tickers(self):
+        self.tickers = self.database.get_watchlist_tickers()
+        
+class Database:
+    def __init__(self,name) -> None:
+        
+        if not os.path.isfile(str(name+'.sqlite')):
+            self.conn = sqlite3.connect(str(name+'.sqlite'),check_same_thread=False)
+            self.c = self.conn.cursor()
+            self.c.execute('''CREATE TABLE portfolio
+                ([id] INTEGER PRIMARY KEY, [TransType] text, [Ticker] text, [Date] text, [Quantity] integer,[Currency] text,[BookPrice] float, [BrokerageFee] float, [NetPrice] float)''')
+            self.c.execute('''CREATE TABLE watchlist
+                ([id] INTEGER PRIMARY KEY, [Ticker] text)''')
+            self.conn.commit()
         else:
-            current_price = "${:.2f}".format(current_price)
+            self.conn = sqlite3.connect(str(name+'.sqlite'),check_same_thread=False)
+            self.c = self.conn.cursor()
+
+    def execute_database(self,sql,entry):
+        self.c.execute(sql,entry)
+        self.conn.commit()
         
-        previous_close_price = ticker_values["previous_close_price"]
-        if previous_close_price < 0:
-            previous_close_price = "-${:.2f}".format(abs(previous_close_price))
-        else:
-            previous_close_price = "${:.2f}".format(previous_close_price)        
-        
-        day_variance = ticker_values["day_variance"]
-        if day_variance < 0:
-            day_variance = "-${:.2f}".format(abs(day_variance))
-        else:
-            day_variance = "${:.2f}".format(day_variance)              
-        
-        day_variance_percent = "{:.2f}%".format(float(ticker_values["day_variance_percent"]))
-        
-        main_table.add_row([ticker,current_price,previous_close_price,day_variance,day_variance_percent])
-    print(main_table)
-    print()
+    def fetchall_database(self,sql,entry=None):
+        if entry is None:
+            self.c.execute(sql)
+        else :
+            self.c.execute(sql,entry)
+        return self.c.fetchall()
     
-def mergeStockData(ticker):
-    databaseData = portfolio.getPortfolioStockData(ticker)
-    currentData = yahooFinanceQuery.getStockData(ticker)
+    def save_to_database_portfolio(self,entry):
+        sql = '''INSERT INTO portfolio (TransType, Ticker, Date, Quantity, Currency, BookPrice, BrokerageFee, NetPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
+        self.execute_database(sql,entry)
+        
+    def save_to_database_watchlist(self,entry):
+        sql = '''INSERT INTO watchlist (Ticker) VALUES (?)'''
+        self.execute_database(sql,[entry])
+        
+    def get_watchlist_tickers(self):
+        sql = '''SELECT DISTINCT Ticker FROM watchlist'''
+        data = self.fetchall_database(sql)
+        
+        ticker_list = []
+        
+        for ticker in data:
+            ticker_list.append(ticker[0])
+   
+        return ticker_list 
     
-    price = currentData["current_price"]
-    quantity = databaseData["quantity"]
-    bookNetPrice = databaseData["netPrice"]
-    bookTotalCost = round(quantity * bookNetPrice,2)
-    currentTotalValue = round(quantity * price,2)
+    def get_portfolio_transactions(self):
+        sql = '''SELECT * FROM  portfolio '''
+        data = self.fetchall_database(sql)
+        return data
     
-    previousClosePrice = currentData["previous_close_price"]
-    dayVarianceStock = round(price-previousClosePrice,2)
-    dayVariancePercentageStock = round((dayVarianceStock/previousClosePrice)*100,2)
-    dayVariancePortfolio = round(quantity * dayVarianceStock,2)
-    dayVariancePercentagePortfolio = round((dayVariancePortfolio/currentTotalValue)*100,2)
-
-    totalVariancePortfolio = round(currentTotalValue - bookTotalCost,2)
-    totalVariancePercentagePortfolio = round((totalVariancePortfolio/bookTotalCost)*100,2)
+    def get_portfolio_tickers(self):
+        sql = '''SELECT DISTINCT Ticker FROM portfolio'''
+        data = self.fetchall_database(sql)
+        
+        ticker_list = []
+        
+        for ticker in data:
+            ticker_list.append(ticker[0])
+   
+        return ticker_list 
     
-    data = {
-        "ticker" : ticker,
-        "price" : price,
-        "quantity" : quantity,
-        "previousClosePrice" : previousClosePrice,
-        "dayVarianceStock" : dayVarianceStock,
-        "dayVariancePercentageStock" : dayVariancePercentageStock,
-        "dayVariancePortfolio" : dayVariancePortfolio,
-        "dayVariancePercentagePortfolio" : dayVariancePercentagePortfolio,
-        "totalVariancePortfolio" : totalVariancePortfolio,
-        "totalVariancePercentagePortfolio" : totalVariancePercentagePortfolio
-    }
+    def get_portfolio_stock_summary(self,ticker):
+        
+        sql = '''SELECT Ticker, SUM(Quantity), SUM(NetPrice) FROM portfolio WHERE Ticker = (?) GROUP BY Ticker'''
+        data = self.fetchall_database(sql, [ticker])
+        
+        quantity = data[0][1]
+        net_price = data[0][2]
+        
+        return quantity, net_price
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    def viewTransactions():
+        #print("No transactions found... Please add transactions before trying to view transactions. You will be redirected to main menu in 10 seconds.")
 
-    return data
+        transactions = fetchTransactions()
 
+        for row in transactions:
+            print(row)
+
+        input("Press any key to go back to main menu.")
+
+    def deleteTransaction():
+        pass
+
+    def choosePortfolioCurrencyDisplay():
+        pass
+
+    def deleteFromDatabase():
+        pass
+    
+
+def launch_tracker():
+    pass
+    
+        
+        
+
+"""
 def launchTracker():
     while(True):
         # Portfolio
-        tickers = portfolio.getTickersInPortfolio()
+        tickers = Portfolio.get_tickers_in_portfolio()
         portfolio_tickers_dict = {}
         for ticker in tickers:
             data = mergeStockData(ticker)
@@ -144,6 +198,4 @@ def launchTracker():
         
         # Refresh interface
         os.system('cls' if os.name == 'nt' else 'clear')
-        
-if __name__ == "__main__":
-    launchTracker()
+"""
