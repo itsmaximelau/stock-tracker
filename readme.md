@@ -20,3 +20,12 @@ Once tickers and/or transactions has been input, user can launch live stock trac
 
 ## Example
  ![Example](https://raw.githubusercontent.com/itsmaximelau/stock-tracker/master/resources/images/example1.png)
+
+## Setup
+To run this project, you must install requirements stated in requirements.txt file, which are the following :
+- console_menu==0.6.0
+- prettytable==2.0.0
+- beautifulsoup4==4.9.3
+- consolemenu==1.0.1
+
+Once requirements are installed, you can simply run main.py and use the program through the CLI menu.
