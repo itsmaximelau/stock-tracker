@@ -1,27 +1,17 @@
 import datetime
-import time
 from prettytable import PrettyTable
 
-def print_portfolio_data(database,portfolio):    
+def print_portfolio_data(data):    
     print("PORTFOLIO")
     main_table = PrettyTable(["Ticker","Daily P/L ($)","Daily P/L (%)","Total P/L ($)","Total P/L (%)"])
     
-    print(portfolio.tickers)
-    
-    for ticker in portfolio.tickers:
-        stock = stocktracker.StockPortfolioData(ticker,db)
-        
-        day_variance_portfolio = format_currency(stock.day_variance_portfolio)
-        day_variance_percentage_portfolio = format_percentage(stock.day_variance_percentage_portfolio)
-        total_variance_portfolio = format_currency(stock.total_variance_portfolio)
-        total_variance_percentage_portfolio = format_percentage(stock.total_variance_percentage_portfolio)
-
-        main_table.add_row([ticker,day_variance_portfolio,day_variance_percentage_portfolio,total_variance_portfolio,total_variance_percentage_portfolio])
+    for ticker in data:
+        main_table.add_row([ticker,data[ticker]["dayVariancePortfolio"],data[ticker]["dayVariancePercentagePortfolio"],data[ticker]["totalVariancePortfolio"],data[ticker]["totalVariancePercentagePortfolio"]])
 
     print(main_table)
     print()
     
-def printWatchlistData(data):
+def print_watchlist_data(data):
     print()
     print("WATCHLIST")
     main_table = PrettyTable(["Ticker","Current price","Previous close price","Daily variance ($)","Daily variance (%)"])
@@ -49,11 +39,9 @@ def printWatchlistData(data):
         main_table.add_row([ticker,current_price,previous_close_price,day_variance,day_variance_percent])
     print(main_table)
     print()
-    
-    
-    
-    
-    
+
+def print_current_time():
+    print("Last refresh : " + datetime.datetime.now().strftime("%H:%M:%S"))
     
 def format_percentage(data):
     return "{:.2f}%".format(float(data))
@@ -65,18 +53,11 @@ def format_currency(data):
         data = "${:.2f}".format(data)
     return data
 
-def get_current_time():
-    return datetime.now().strftime("%H:%M:%S")
-
-
-
-
-
 def add_transaction(database, portfolio):
-    entryAdded = False
+    entry_added = False
 
     # Begining of loop until end of entry
-    while not entryAdded:
+    while not entry_added:
         # Transaction type
         transType = transactionTypeInput()
 
@@ -111,10 +92,58 @@ def add_transaction(database, portfolio):
         
 
         #End loop
-        entryAdded = True
+        entry_added = True
 
-def delete_transaction(database, portfolio):
-    pass
+def delete_transaction(database,portfolio):
+    entry_deleted = False
+
+    # Begining of loop until end of delete
+    while not entry_deleted:
+        # Transaction type
+        entry_delete_id = entry_delete(database)
+
+        # Delete entry
+        database.delete_in_database_portfolio(entry_delete_id)
+        
+        portfolio.update_tickers()
+        
+        #End loop
+        entry_deleted = True
+
+def add_to_watchlist(database, watchlist):
+    entry_added = False
+
+    # Begining of loop until end of entry
+    while not entry_added:
+        
+        # Stock ticker
+        ticker = stockTickerInput()
+
+        # Validation completed at this point
+
+        # Save entry
+        database.save_to_database_watchlist(ticker)
+        
+        watchlist.update_tickers()
+        
+        #End loop
+        entry_added = True
+
+def delete_from_watchlist(database,watchlist):
+    entry_deleted = False
+
+    # Begining of loop until end of delete
+    while not entry_deleted:
+        # Transaction type
+        ticker = ticker_delete(database)
+
+        # Delete entry
+        database.delete_in_database_watchlist(ticker)
+        
+        watchlist.update_tickers()
+        
+        #End loop
+        entry_deleted = True    
 
 def view_transactions(database):
     user_input= False
@@ -131,20 +160,20 @@ def view_transactions(database):
         input("Press any key to go back to main menu.")
         user_input = True
 
-        """
-        stock = stocktracker.StockPortfolioData(ticker,db)
+def view_watchlist_tickers(database):
+    user_input= False
+
+    # Begining of loop until user input
+    while not user_input:
+        print("WATCHLIST")
+        main_table = PrettyTable(["Ticker"])
+
+        for ticker in database.get_watchlist_tickers():
+            main_table.add_row([ticker])
         
-        day_variance_portfolio = format_currency(stock.day_variance_portfolio)
-        day_variance_percentage_portfolio = format_percentage(stock.day_variance_percentage_portfolio)
-        total_variance_portfolio = format_currency(stock.total_variance_portfolio)
-        total_variance_percentage_portfolio = format_percentage(stock.total_variance_percentage_portfolio)
-
-        main_table.add_row([ticker,day_variance_portfolio,day_variance_percentage_portfolio,total_variance_portfolio,total_variance_percentage_portfolio])
-        """
-
-
-def add_to_watchlist(database, watchlist):
-    pass
+        print(main_table)
+        input("Press any key to go back to main menu.")
+        user_input = True
 
 def choose_portfolio_currency_display(database):
     pass
@@ -155,6 +184,30 @@ def addToWatchList():
     # Save entry
     stockInformations = (ticker)
     saveToDatabaseWatchList([stockInformations])
+
+def entry_delete(db):
+    inputIncomplete = True
+    while inputIncomplete == True:
+        try:
+            id = input("Enter transaction id : ")
+            entry_delete_validation(id,db)
+            inputIncomplete = False
+            return id
+
+        except ValueError as reason:
+            print(reason)
+            
+def ticker_delete(db):
+    inputIncomplete = True
+    while inputIncomplete == True:
+        try:
+            ticker = input("Enter ticker to delete : ")
+            ticker_delete_validation(ticker,db)
+            inputIncomplete = False
+            return ticker
+
+        except ValueError as reason:
+            print(reason)
 
 def transactionTypeInput():
     inputIncomplete = True
@@ -283,3 +336,11 @@ def stockPriceValidation(price):
 def brokerageFeeValidation(brokerageFee):
     if float(brokerageFee) < 0:
         raise ValueError("Error - Please select a valid fee (must be greater or equal to 0).")
+    
+def entry_delete_validation(id,db):
+    if len(db.get_portfolio_transaction_id(id)) == 0:
+        raise ValueError("Error - Please select a valid transaction ID.")
+    
+def ticker_delete_validation(ticker,db):
+    if len(db.get_watchlist_ticker_entry(ticker)) == 0:
+        raise ValueError("Error - Please select a valid ticker.")
