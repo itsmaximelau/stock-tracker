@@ -1,10 +1,9 @@
+import cli
+import stocktracker
+
 from consolemenu import *
 from consolemenu.format import *
 from consolemenu.items import *
-from pathlib import Path
-import stocktracker
-import cli
-
 
 # Variables
 REFRESH_RATE = 45

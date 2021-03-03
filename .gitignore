@@ -1,3 +1,5 @@
 *.sqlite
 **/__pycache__
 __pycache__
+**/__dist__
+__dist__

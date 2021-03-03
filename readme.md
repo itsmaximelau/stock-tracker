@@ -1,5 +1,5 @@
 ## Description
-Command-line interface stock tracker to get basic stock informations and create/track your portfolio.
+Command-line interface stock tracker to get basic stock informations (watchlist) and create/track your portfolio.
 
 ## What have I learned ?
 - Web scraping (with BeautifulSoup)
@@ -7,4 +7,15 @@ Command-line interface stock tracker to get basic stock informations and create/
 - SQLite3
 
 ## How does it work ?
-This short program is ran in a command-line interface (it should be cross-platform). User has to input stock ticker for which he is interested. Then, the program gets current price, previous close price and price variance and refreshes it every 25 seconds (editable). Data is scraped from Yahoo Finance website.
+This program works in a command-line interface. 
+
+WATCHLIST :
+User has the choice to input stock ticker in his watchlist to keep track of the stock price. 
+
+PORTFOLIO :
+User has the choice to input transactions to keep track of his portfolio value in real-time.
+
+STOCK TRACKER : 
+Once tickers and/or transactions has been input, user can launch live stock tracker. Then, the program scrapes data from Yahoo! Finance to give real-time data according to user input. Data refreshes every 45 seconds (editable).
+
+## Example

@@ -1,7 +1,6 @@
 import datetime
 from prettytable import PrettyTable
 
-
 # Printing functions
 def print_portfolio_data(data):    
     print("PORTFOLIO")

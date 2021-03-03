@@ -1,11 +1,13 @@
-import os
-import time
-from urllib.request import urlopen
-import yahoo_finance_query
-from prettytable import PrettyTable
-import sqlite3
-from pathlib import Path
 import cli
+import yahoo_finance_query
+
+import os
+import sqlite3
+import time
+
+from pathlib import Path
+from prettytable import PrettyTable
+from urllib.request import urlopen
 
 class DetainedStock:
     def __init__(self,ticker,db) -> None:
@@ -68,7 +70,7 @@ class Database:
             self.conn = sqlite3.connect(str(database),check_same_thread=False)
             self.c = self.conn.cursor()
             self.c.execute('''CREATE TABLE portfolio
-                ([id] INTEGER PRIMARY KEY, [trans_type] text, [Ticker] text, [Date] text, [Quantity] integer,[Currency] text,[BookPrice] float, [brokerage_fee] float, [net_price] float)''')
+                ([id] INTEGER PRIMARY KEY, [TransType] text, [Ticker] text, [Date] text, [Quantity] integer,[Currency] text,[BookPrice] float, [BrokerageFee] float, [NetPrice] float)''')
             self.c.execute('''CREATE TABLE watchlist
                 ([id] INTEGER PRIMARY KEY, [Ticker] text)''')
             self.conn.commit()
@@ -88,7 +90,7 @@ class Database:
         return self.c.fetchall()
     
     def save_to_database_portfolio(self,entry):
-        sql = '''INSERT INTO portfolio (trans_type, Ticker, Date, Quantity, Currency, BookPrice, brokerage_fee, net_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
+        sql = '''INSERT INTO portfolio (TransType, Ticker, Date, Quantity, Currency, BookPrice, BrokerageFee, NetPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
         self.execute_database(sql,entry)
         
     def save_to_database_watchlist(self,entry):
@@ -133,7 +135,7 @@ class Database:
         return ticker_list 
     
     def get_portfolio_stock_summary(self,ticker): 
-        sql = '''SELECT Ticker, SUM(Quantity), SUM(net_price) FROM portfolio WHERE Ticker = (?) GROUP BY Ticker'''
+        sql = '''SELECT Ticker, SUM(Quantity), SUM(NetPrice) FROM portfolio WHERE Ticker = (?) GROUP BY Ticker'''
         data = self.fetchall_database(sql, [ticker])
         
         try:

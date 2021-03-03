@@ -1,0 +1,4 @@
+console_menu==0.6.0
+prettytable==2.0.0
+beautifulsoup4==4.9.3
+consolemenu==1.0.1
