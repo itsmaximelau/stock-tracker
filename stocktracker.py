@@ -1,6 +1,5 @@
 import os
 import time
-import bs4
 from urllib.request import urlopen
 import yahoo_finance_query
 from prettytable import PrettyTable
@@ -69,7 +68,7 @@ class Database:
             self.conn = sqlite3.connect(str(database),check_same_thread=False)
             self.c = self.conn.cursor()
             self.c.execute('''CREATE TABLE portfolio
-                ([id] INTEGER PRIMARY KEY, [TransType] text, [Ticker] text, [Date] text, [Quantity] integer,[Currency] text,[BookPrice] float, [BrokerageFee] float, [NetPrice] float)''')
+                ([id] INTEGER PRIMARY KEY, [trans_type] text, [Ticker] text, [Date] text, [Quantity] integer,[Currency] text,[BookPrice] float, [brokerage_fee] float, [net_price] float)''')
             self.c.execute('''CREATE TABLE watchlist
                 ([id] INTEGER PRIMARY KEY, [Ticker] text)''')
             self.conn.commit()
@@ -89,7 +88,7 @@ class Database:
         return self.c.fetchall()
     
     def save_to_database_portfolio(self,entry):
-        sql = '''INSERT INTO portfolio (TransType, Ticker, Date, Quantity, Currency, BookPrice, BrokerageFee, NetPrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
+        sql = '''INSERT INTO portfolio (trans_type, Ticker, Date, Quantity, Currency, BookPrice, brokerage_fee, net_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'''
         self.execute_database(sql,entry)
         
     def save_to_database_watchlist(self,entry):
@@ -134,7 +133,7 @@ class Database:
         return ticker_list 
     
     def get_portfolio_stock_summary(self,ticker): 
-        sql = '''SELECT Ticker, SUM(Quantity), SUM(NetPrice) FROM portfolio WHERE Ticker = (?) GROUP BY Ticker'''
+        sql = '''SELECT Ticker, SUM(Quantity), SUM(net_price) FROM portfolio WHERE Ticker = (?) GROUP BY Ticker'''
         data = self.fetchall_database(sql, [ticker])
         
         try:
@@ -179,10 +178,10 @@ class Tracker:
                 portfolio_data = StockPortfolioData(ticker,self.db)
                 data_dict = {
                     ticker : {
-                        "dayVariancePortfolio" : portfolio_data.day_variance_portfolio,
-                        "dayVariancePercentagePortfolio" : portfolio_data.day_variance_percentage_portfolio,
-                        "totalVariancePortfolio" : portfolio_data.total_variance_portfolio,
-                        "totalVariancePercentagePortfolio" : portfolio_data.total_variance_percentage_portfolio
+                        "day_variance_portfolio" : portfolio_data.day_variance_portfolio,
+                        "day_variance_percentage_portfolio" : portfolio_data.day_variance_percentage_portfolio,
+                        "total_variance_portfolio" : portfolio_data.total_variance_portfolio,
+                        "total_variance_percentage_portfolio" : portfolio_data.total_variance_percentage_portfolio
                     }
                 }
                 portfolio_tickers_dict.update(data_dict)

@@ -1,12 +1,14 @@
 import datetime
 from prettytable import PrettyTable
 
+
+# Printing functions
 def print_portfolio_data(data):    
     print("PORTFOLIO")
     main_table = PrettyTable(["Ticker","Daily P/L ($)","Daily P/L (%)","Total P/L ($)","Total P/L (%)"])
     
     for ticker in data:
-        main_table.add_row([ticker,data[ticker]["dayVariancePortfolio"],data[ticker]["dayVariancePercentagePortfolio"],data[ticker]["totalVariancePortfolio"],data[ticker]["totalVariancePercentagePortfolio"]])
+        main_table.add_row([ticker,data[ticker]["day_variance_portfolio"],data[ticker]["day_variance_percentage_portfolio"],data[ticker]["total_variance_portfolio"],data[ticker]["total_variance_percentage_portfolio"]])
 
     print(main_table)
     print()
@@ -42,7 +44,8 @@ def print_watchlist_data(data):
 
 def print_current_time():
     print("Last refresh : " + datetime.datetime.now().strftime("%H:%M:%S"))
-    
+
+# Formating
 def format_percentage(data):
     return "{:.2f}%".format(float(data))
 
@@ -53,44 +56,44 @@ def format_currency(data):
         data = "${:.2f}".format(data)
     return data
 
+# Input group functions
 def add_transaction(database, portfolio):
     entry_added = False
 
     # Begining of loop until end of entry
     while not entry_added:
         # Transaction type
-        transType = transactionTypeInput()
+        trans_type = transaction_type_input()
 
         # Stock ticker
-        ticker = stockTickerInput()
+        ticker = stock_ticker_input()
 
         # Transaction date
-        date = transactionDateInput()
+        date = transaction_date_input()
 
         # Stock quantity
-        quantity = stockQuantityInput()
+        quantity = stock_quantity_input()
         
         # Stock currency
-        currency = stockCurrencyInput()
+        currency = stock_currency_input()
 
         # Stock price
-        price = stockPriceInput()
+        price = stock_price_input()
 
         # Brokerage Fee
-        brokerageFee = brokerageFeeInput()
+        brokerage_fee = brokerage_fee_input()
 
         # Net price calculation
-        netPrice = float(price) + float(brokerageFee)
+        net_price = float(price) + float(brokerage_fee)
         
         # Validation completed at this point
 
         # Save entry
-        transaction = (str(transType), str(ticker), str(date), int(quantity), str(currency), float(price), float(brokerageFee), float(netPrice)) 
+        transaction = (str(trans_type), str(ticker), str(date), int(quantity), str(currency), float(price), float(brokerage_fee), float(net_price)) 
         database.save_to_database_portfolio(transaction)
         
         portfolio.update_tickers()
         
-
         #End loop
         entry_added = True
 
@@ -117,7 +120,7 @@ def add_to_watchlist(database, watchlist):
     while not entry_added:
         
         # Stock ticker
-        ticker = stockTickerInput()
+        ticker = stock_ticker_input()
 
         # Validation completed at this point
 
@@ -174,144 +177,137 @@ def view_watchlist_tickers(database):
         print(main_table)
         input("Press any key to go back to main menu.")
         user_input = True
-
-def choose_portfolio_currency_display(database):
-    pass
     
-def addToWatchList():
-    # Stock ticker
-    ticker = stockTickerInput()
-    # Save entry
-    stockInformations = (ticker)
-    saveToDatabaseWatchList([stockInformations])
-
 def entry_delete(db):
-    inputIncomplete = True
-    while inputIncomplete == True:
+    input_incomplete = True
+    while input_incomplete == True:
         try:
             id = input("Enter transaction id : ")
             entry_delete_validation(id,db)
-            inputIncomplete = False
+            input_incomplete = False
             return id
 
         except ValueError as reason:
             print(reason)
             
 def ticker_delete(db):
-    inputIncomplete = True
-    while inputIncomplete == True:
+    input_incomplete = True
+    while input_incomplete == True:
         try:
             ticker = input("Enter ticker to delete : ")
             ticker_delete_validation(ticker,db)
-            inputIncomplete = False
+            input_incomplete = False
             return ticker
 
         except ValueError as reason:
             print(reason)
 
-def transactionTypeInput():
-    inputIncomplete = True
-    while inputIncomplete == True:
+# Input loops
+def transaction_type_input():
+    input_incomplete = True
+    while input_incomplete == True:
         try:
-            transType = input("Enter transaction type (Buy or Sell) : ")
-            transactionTypeValidation(transType)
-            inputIncomplete = False
-            return transType
+            trans_type = input("Enter transaction type (Buy or Sell) : ")
+            transaction_type_validation(trans_type)
+            input_incomplete = False
+            return trans_type
 
         except ValueError as reason:
             print(reason)
 
-def stockTickerInput():
-    inputIncomplete = True
-    while inputIncomplete == True:
+def stock_ticker_input():
+    input_incomplete = True
+    while input_incomplete == True:
         try:
             ticker = input("Enter stock ticker : ")
-            stockTickerValidation(ticker)
-            inputIncomplete = False
+            stock_ticker_validation(ticker)
+            input_incomplete = False
             return ticker
 
         except ValueError as reason:
             print(reason)
 
-def transactionDateInput():
-    inputIncomplete = True
-    while inputIncomplete == True:
+def transaction_date_input():
+    input_incomplete = True
+    while input_incomplete == True:
         try:
             date_entry = input('Enter a date in YYYY-MM-DD format : ')
             year, month, day = map(int, date_entry.split('-'))
             datetime.date(year, month, day)
-            inputIncomplete = False
+            input_incomplete = False
             return date_entry
 
         except ValueError:
-            print("Wrong date")
+            print("Please enter a valid date.")
 
-def stockQuantityInput():
-    inputIncomplete = True
-    while inputIncomplete == True:    
+def stock_quantity_input():
+    input_incomplete = True
+    while input_incomplete == True:    
         try:
             quantity = input("Enter quantity bought : ")
-            stockQuantityValidation(quantity)
-            inputIncomplete = False
+            stock_quantity_validation(quantity)
+            input_incomplete = False
             return quantity
 
         except ValueError as reason:
             print(reason) 
 
-def stockCurrencyInput():
-    inputIncomplete = True
-    while inputIncomplete == True:
+def stock_currency_input():
+    input_incomplete = True
+    while input_incomplete == True:
         try:
             currency = input("Enter stock currency (CAD or USD) : ")
-            stockCurrencyValidation(currency)
-            inputIncomplete = False
+            stock_currency_validation(currency)
+            input_incomplete = False
             return currency
 
         except ValueError as reason:
             print(reason)
 
-def stockPriceInput():
-    inputIncomplete = True
-    while inputIncomplete == True:    
+def stock_price_input():
+    input_incomplete = True
+    while input_incomplete == True:    
         try:
             price = input("Enter stock book value (price you paid per unit) : ")
-            stockPriceValidation(price)
-            inputIncomplete = False
+            stock_price_validation(price)
+            input_incomplete = False
             return price
 
         except ValueError as reason:
             print(reason)
 
-def brokerageFeeInput():
-    inputIncomplete = True
-    while inputIncomplete == True:    
+def brokerage_fee_input():
+    input_incomplete = True
+    while input_incomplete == True:    
         try:
-            brokerageFee = input("Enter the brokerage fee (broker commission - if none, enter 0) : ")
-            brokerageFeeValidation(brokerageFee)
-            inputIncomplete = False
-            return brokerageFee
+            brokerage_fee = input("Enter the brokerage fee (broker commission - if none, enter 0) : ")
+            brokerage_fee_validation(brokerage_fee)
+            input_incomplete = False
+            return brokerage_fee
 
         except ValueError as reason:
             print(reason)
 
-def transactionTypeValidation(transType):
-    if transType.upper() == "BUY":
+
+#Validation
+def transaction_type_validation(trans_type):
+    if trans_type.upper() == "BUY":
         return "Buy"
 
-    elif transType.upper() == "SELL":
+    elif trans_type.upper() == "SELL":
         return "Sell"
 
     else:
         raise ValueError("Error - Please select a valid transaction type (Buy or Sell)")
 
-def stockTickerValidation(ticker):
+def stock_ticker_validation(ticker):
     if not (3 <= len(ticker) <= 4):
         print(str("Ticker you entered "+"("+ ticker +") does not respect the convetional naming convention. \n Are you sure you correctly entered the ticker ? If ticker is incorrect, stock data wont be retrieved."))
-        correctTicker = input("Continue with current ticker (y/n)")
-        if correctTicker == "n":
+        correct_ticker = input("Continue with current ticker (y/n)")
+        if correct_ticker == "n":
             raise ValueError("Error - Please enter a new ticker.")
 
-def stockCurrencyValidation(currency):
+def stock_currency_validation(currency):
     if currency.upper() == "CAD":
         return "CAD"
 
@@ -321,7 +317,7 @@ def stockCurrencyValidation(currency):
     else:
         raise ValueError("Error - Please select a valid currency (CAD or USD). Other currencies are not supported yet.")
 
-def stockQuantityValidation(quantity):
+def stock_quantity_validation(quantity):
     try :
         if int(quantity) <= 0:
             raise ValueError("Error - Please select a valid quantity (must be greater than 0).")
@@ -329,12 +325,12 @@ def stockQuantityValidation(quantity):
     except ValueError:
         raise ValueError("Error - Please enter a valid quantity (must be greater than 0 and not be a string).")
 
-def stockPriceValidation(price):
+def stock_price_validation(price):
     if float(price) <= 0:
         raise ValueError("Error - Please select a valid price (must be greater than 0).")
 
-def brokerageFeeValidation(brokerageFee):
-    if float(brokerageFee) < 0:
+def brokerage_fee_validation(brokerage_fee):
+    if float(brokerage_fee) < 0:
         raise ValueError("Error - Please select a valid fee (must be greater or equal to 0).")
     
 def entry_delete_validation(id,db):
@@ -344,3 +340,7 @@ def entry_delete_validation(id,db):
 def ticker_delete_validation(ticker,db):
     if len(db.get_watchlist_ticker_entry(ticker)) == 0:
         raise ValueError("Error - Please select a valid ticker.")
+
+#TO DO
+def choose_portfolio_currency_display(database):
+    pass

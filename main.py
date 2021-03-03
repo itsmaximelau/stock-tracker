@@ -5,10 +5,13 @@ from pathlib import Path
 import stocktracker
 import cli
 
-REFRESH_RATE = 45
 
-db_name = "StockData"
-my_database = stocktracker.Database(db_name)
+# Variables
+REFRESH_RATE = 45
+DB_NAME = "StockData"
+
+# Objects
+my_database = stocktracker.Database(DB_NAME)
 my_portfolio = stocktracker.Portfolio(my_database)
 my_watchlist = stocktracker.Watchlist(my_database)
 tracker = stocktracker.Tracker(REFRESH_RATE,my_database)
@@ -23,23 +26,26 @@ menu_format = MenuFormatBuilder().set_border_style_type(MenuBorderStyleType.DOUB
     
 menu = ConsoleMenu("Stock Tracker", formatter=menu_format)
 
-# Portfolio
+## Portfolio
+
 # Menu
 portfolio_manager = ConsoleMenu(title="Manage Portfolio", formatter=menu_format)
 portfolio_manager_option = SubmenuItem("Manage Portfolio",submenu=portfolio_manager)
 portfolio_manager_option.set_menu(menu)
 menu.append_item(portfolio_manager_option)
+
 # Options
 add_transaction = items.FunctionItem("Add a transaction", cli.add_transaction,(my_database,my_portfolio))
-deleteTransaction = items.FunctionItem("Delete a transaction", cli.delete_transaction,(my_database,my_portfolio))
+delete_transaction = items.FunctionItem("Delete a transaction", cli.delete_transaction,(my_database,my_portfolio))
 view_transactions = items.FunctionItem("View transactions", cli.view_transactions,([my_database]))
-choosePortfolioCurrencyDisplay = items.FunctionItem("Choose portfolio currency displayed", cli.choose_portfolio_currency_display)
+choose_portfolio_currency_display = items.FunctionItem("Choose portfolio currency displayed", cli.choose_portfolio_currency_display)
 portfolio_manager.append_item(add_transaction)
-portfolio_manager.append_item(deleteTransaction)
+portfolio_manager.append_item(delete_transaction)
 portfolio_manager.append_item(view_transactions)
-portfolio_manager.append_item(choosePortfolioCurrencyDisplay)    
+portfolio_manager.append_item(choose_portfolio_currency_display)    
 
-# Watchlist
+## Watchlist
+
 # Menu
 watchlist = ConsoleMenu(title="Manage Watchlist", formatter=menu_format)
 watchlist_option = SubmenuItem("Manage Watchlist",submenu=watchlist)
@@ -48,15 +54,15 @@ watchlist_option.set_menu(menu)
 menu.append_item(watchlist_option)
 
 # Options
-addToWatchList = items.FunctionItem("Add to watchlist", cli.add_to_watchlist,(my_database,my_watchlist))
-deleteFromWatchList = items.FunctionItem("Delete from watchlist", cli.delete_from_watchlist,(my_database,my_watchlist))
-viewWatchList = items.FunctionItem("View watchlist", cli.view_watchlist_tickers,([my_database]))
-watchlist.append_item(addToWatchList)
-watchlist.append_item(deleteFromWatchList)
-watchlist.append_item(viewWatchList)
+add_to_watchlist = items.FunctionItem("Add to watchlist", cli.add_to_watchlist,(my_database,my_watchlist))
+delete_from_watchlist = items.FunctionItem("Delete from watchlist", cli.delete_from_watchlist,(my_database,my_watchlist))
+view_watchlist = items.FunctionItem("View watchlist", cli.view_watchlist_tickers,([my_database]))
+watchlist.append_item(add_to_watchlist)
+watchlist.append_item(delete_from_watchlist)
+watchlist.append_item(view_watchlist)
 
 # Stock tracker
-launchStockTracker = items.FunctionItem("Launch stock tracker", tracker.launch_tracker)
-menu.append_item(launchStockTracker)
+launch_stock_tracker = items.FunctionItem("Launch stock tracker", tracker.launch_tracker)
+menu.append_item(launch_stock_tracker)
 
 menu.show()
