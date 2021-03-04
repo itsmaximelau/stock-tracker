@@ -29,3 +29,9 @@ To run this project, you must install requirements stated in requirements.txt fi
 - consolemenu==1.0.1
 
 Once requirements are installed, you can simply run main.py and use the program through the CLI menu.
+
+## To do
+I plan on adding the following features :
+- Get portfolio total
+- Set a different currency
+- Add cash balance
