@@ -19,7 +19,8 @@ STOCK TRACKER :
 Once tickers and/or transactions has been input, user can launch live stock tracker. Then, the program scrapes data from Yahoo! Finance to give real-time data according to user input. Data refreshes every 45 seconds (editable).
 
 ## Example
-'''
+
+```
 WATCHLIST
 +--------+---------------+----------------------+--------------------+--------------------+
 | Ticker | Current price | Previous close price | Daily variance ($) | Daily variance (%) |
@@ -39,7 +40,7 @@ PORTFOLIO
 +--------+---------------+---------------+---------------+---------------+
 
 Last refresh : 09:27:27
-'''
+```
 
 ## Setup
 To run this project, you must install requirements stated in requirements.txt file, which are the following :
