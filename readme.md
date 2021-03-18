@@ -43,7 +43,7 @@ PORTFOLIO
 +--------+---------------+---------------+---------------+---------------+
 
 Last refresh : 14:19:23
-'''
+```
 
 ## Setup
 To run this project, you must install requirements stated in requirements.txt file, which are the following :
