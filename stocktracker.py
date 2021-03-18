@@ -53,27 +53,24 @@ class Portfolio:
         self.day_variance_portfolio = 0
         
         self.total_daily_pl = 0
-        self.total_daily_pl_percentage = 0
         self.total_total_pl = 0
-        self.total_total_pl_percentage = 0
+        self.total_previous_close = 0
         
         for ticker in self.tickers:
             ticker = StockPortfolioData(ticker,self.database)
             self.book_total_cost = self.book_total_cost + ticker.book_total_cost
             self.day_variance_portfolio = self.day_variance_portfolio + ticker.day_variance_stock
-            
+            self.total_previous_close = self.total_previous_close + (ticker.previous_close_price * ticker.quantity)
             self.total_daily_pl = self.total_daily_pl + ticker.day_variance_portfolio
-            self.total_daily_pl_percentage = self.total_daily_pl_percentage + (ticker.day_variance_portfolio * ticker.day_variance_percentage_portfolio)
             self.total_total_pl = self.total_total_pl + ticker.total_variance_portfolio
-            self.total_total_pl_percentage = self.total_total_pl_percentage + (ticker.total_variance_portfolio * ticker.total_variance_percentage_portfolio)
 
         try:
-            self.total_daily_pl_percentage = self.total_daily_pl_percentage/self.total_daily_pl
+            self.total_daily_pl_percentage = self.total_daily_pl/self.total_previous_close*100
         except ZeroDivisionError :
             self.total_daily_pl_percentage = 0
             
         try:
-            self.total_total_pl_percentage = self.total_total_pl_percentage/self.total_total_pl
+            self.total_total_pl_percentage = self.total_total_pl/self.book_total_cost*100
         except ZeroDivisionError :
             self.total_total_pl_percentage = 0
         
