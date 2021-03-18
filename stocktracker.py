@@ -49,6 +49,34 @@ class Portfolio:
         self.database = database
         self.tickers = self.database.get_portfolio_tickers()
         
+        self.book_total_cost = 0
+        self.day_variance_portfolio = 0
+        
+        self.total_daily_pl = 0
+        self.total_daily_pl_percentage = 0
+        self.total_total_pl = 0
+        self.total_total_pl_percentage = 0
+        
+        for ticker in self.tickers:
+            ticker = StockPortfolioData(ticker,self.database)
+            self.book_total_cost = self.book_total_cost + ticker.book_total_cost
+            self.day_variance_portfolio = self.day_variance_portfolio + ticker.day_variance_stock
+            
+            self.total_daily_pl = self.total_daily_pl + ticker.day_variance_portfolio
+            self.total_daily_pl_percentage = self.total_daily_pl_percentage + (ticker.day_variance_portfolio * ticker.day_variance_percentage_portfolio)
+            self.total_total_pl = self.total_total_pl + ticker.total_variance_portfolio
+            self.total_total_pl_percentage = self.total_total_pl_percentage + (ticker.total_variance_portfolio * ticker.total_variance_percentage_portfolio)
+
+        try:
+            self.total_daily_pl_percentage = self.total_daily_pl_percentage/self.total_daily_pl
+        except ZeroDivisionError :
+            self.total_daily_pl_percentage = 0
+            
+        try:
+            self.total_total_pl_percentage = self.total_total_pl_percentage/self.total_total_pl
+        except ZeroDivisionError :
+            self.total_total_pl_percentage = 0
+        
     def update_tickers(self):
         self.tickers = self.database.get_portfolio_tickers()
 
@@ -160,10 +188,8 @@ class Database:
         sql = '''DELETE FROM watchlist WHERE ticker= (?);'''
         self.execute_database(sql,[entry])
 
-    def choosePortfolioCurrencyDisplay():
-        pass
-
-    def deleteFromDatabase():
+#TO DO#
+    def choose_portfolio_currency_display():
         pass
 
 class Tracker:
@@ -177,17 +203,27 @@ class Tracker:
             tickers = Database.get_portfolio_tickers(self.db)
             portfolio_tickers_dict = {}
             for ticker in tickers:
-                portfolio_data = StockPortfolioData(ticker,self.db)
+                portfolio_stock_data = StockPortfolioData(ticker,self.db)
                 data_dict = {
                     ticker : {
-                        "day_variance_portfolio" : portfolio_data.day_variance_portfolio,
-                        "day_variance_percentage_portfolio" : portfolio_data.day_variance_percentage_portfolio,
-                        "total_variance_portfolio" : portfolio_data.total_variance_portfolio,
-                        "total_variance_percentage_portfolio" : portfolio_data.total_variance_percentage_portfolio
+                        "day_variance_portfolio" : portfolio_stock_data.day_variance_portfolio,
+                        "day_variance_percentage_portfolio" : portfolio_stock_data.day_variance_percentage_portfolio,
+                        "total_variance_portfolio" : portfolio_stock_data.total_variance_portfolio,
+                        "total_variance_percentage_portfolio" : portfolio_stock_data.total_variance_percentage_portfolio
                     }
                 }
                 portfolio_tickers_dict.update(data_dict)
-        
+            
+            portfolio_data = Portfolio(self.db)
+            total_dict = {
+                "Total" : {
+                    "total_daily_pl" : portfolio_data.total_daily_pl,
+                    "total_daily_pl_percentage" : portfolio_data.total_daily_pl_percentage,
+                    "total_total_pl" : portfolio_data.total_total_pl,
+                    "total_total_pl_percentage" : portfolio_data.total_total_pl_percentage
+                }
+            }
+
             # Watchlist    
             tickers = Database.get_watchlist_tickers(self.db)
             watchlist_tickers_dict = {}
@@ -204,7 +240,7 @@ class Tracker:
                 watchlist_tickers_dict.update(data_dict)
 
             cli.print_watchlist_data(watchlist_tickers_dict)
-            cli.print_portfolio_data(portfolio_tickers_dict)
+            cli.print_portfolio_data(portfolio_tickers_dict,total_dict)
             cli.print_current_time()
 
             # Refresh rate
