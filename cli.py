@@ -2,13 +2,31 @@ import datetime
 from prettytable import PrettyTable
 
 # Printing functions
-def print_portfolio_data(data):    
+def print_portfolio_data(data,total):    
     print("PORTFOLIO")
     main_table = PrettyTable(["Ticker","Daily P/L ($)","Daily P/L (%)","Total P/L ($)","Total P/L (%)"])
     
     for ticker in data:
-        main_table.add_row([ticker,data[ticker]["day_variance_portfolio"],data[ticker]["day_variance_percentage_portfolio"],data[ticker]["total_variance_portfolio"],data[ticker]["total_variance_percentage_portfolio"]])
+        daily_pl = format_currency(data[ticker]["day_variance_portfolio"])
+        daily_pl_percentage = format_percentage(data[ticker]["day_variance_percentage_portfolio"])
+        total_pl = format_currency(data[ticker]["total_variance_portfolio"])
+        total_pl_percentage = format_percentage(data[ticker]["total_variance_percentage_portfolio"])
 
+        main_table.add_row([ticker,daily_pl,daily_pl_percentage,total_pl,total_pl_percentage]) 
+        
+    total_daily_pl = 0
+    total_daily_pl_percentage = 0
+    total_total_pl = 0
+    total_total_pl_percentage = 0
+    
+    total_daily_pl = format_currency(total["Total"]["total_daily_pl"])
+    total_daily_pl_percentage = format_percentage(total["Total"]["total_daily_pl_percentage"])
+    total_total_pl = format_currency(total["Total"]["total_total_pl"])
+    total_total_pl_percentage = format_percentage(total["Total"]["total_total_pl_percentage"])
+    
+    main_table.add_row(["------","------","------","------","----"])
+    main_table.add_row(["Total",total_daily_pl,total_daily_pl_percentage,total_total_pl,total_total_pl_percentage])
+    
     print(main_table)
     print()
     
@@ -17,25 +35,10 @@ def print_watchlist_data(data):
     print("WATCHLIST")
     main_table = PrettyTable(["Ticker","Current price","Previous close price","Daily variance ($)","Daily variance (%)"])
     for ticker, ticker_values in data.items():
-        current_price = ticker_values["current_price"]
-        if current_price < 0:
-            current_price = "-${:.2f}".format(abs(current_price))
-        else:
-            current_price = "${:.2f}".format(current_price)
-        
-        previous_close_price = ticker_values["previous_close_price"]
-        if previous_close_price < 0:
-            previous_close_price = "-${:.2f}".format(abs(previous_close_price))
-        else:
-            previous_close_price = "${:.2f}".format(previous_close_price)        
-        
-        day_variance = ticker_values["day_variance"]
-        if day_variance < 0:
-            day_variance = "-${:.2f}".format(abs(day_variance))
-        else:
-            day_variance = "${:.2f}".format(day_variance)              
-        
-        day_variance_percent = "{:.2f}%".format(float(ticker_values["day_variance_percent"]))
+        current_price = format_currency(ticker_values["current_price"])
+        previous_close_price = format_currency(ticker_values["previous_close_price"])
+        day_variance = format_currency(ticker_values["day_variance"])
+        day_variance_percent = format_percentage(ticker_values["day_variance_percent"])
         
         main_table.add_row([ticker,current_price,previous_close_price,day_variance,day_variance_percent])
     print(main_table)
@@ -83,7 +86,7 @@ def add_transaction(database, portfolio):
         brokerage_fee = brokerage_fee_input()
 
         # Net price calculation
-        net_price = float(price) + float(brokerage_fee)
+        net_price = float(price) + float(float(brokerage_fee)/int(quantity))
         
         # Validation completed at this point
 
