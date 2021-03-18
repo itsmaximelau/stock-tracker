@@ -1,5 +1,5 @@
 ## Description
-Command-line interface stock tracker to get basic stock informations (watchlist) and create/track your portfolio.
+Command-line interface stock tracker to get basic stock informations using Yahoo Finance! in the form of a watchlist and a portfolio.
 
 ## What have I learned ?
 - Web scraping (with BeautifulSoup)
