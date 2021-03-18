@@ -24,34 +24,38 @@ WATCHLIST
 +--------+---------------+----------------------+--------------------+--------------------+
 | Ticker | Current price | Previous close price | Daily variance ($) | Daily variance (%) |
 +--------+---------------+----------------------+--------------------+--------------------+
-|  SPY   |    $381.42    |       $386.54        |       -$5.12       |       -1.32%       |
-|  GME   |    $124.18    |       $118.18        |       $6.00        |       5.08%        |
-|  MSFT  |    $227.56    |       $233.87        |       -$6.31       |       -2.70%       |
-|  NIO   |     $41.53    |        $43.29        |       -$1.76       |       -4.07%       |
+|  TSLA  |    $665.97    |       $701.81        |      -$35.84       |       -5.11%       |
+|  NIO   |     $42.74    |        $44.76        |       -$2.02       |       -4.51%       |
+|  BABA  |    $237.18    |       $233.34        |       $3.84        |       1.65%        |
+|  SPY   |    $394.37    |       $397.26        |       -$2.89       |       -0.73%       |
+|  MSFT  |    $232.28    |       $237.04        |       -$4.76       |       -2.01%       |
 +--------+---------------+----------------------+--------------------+--------------------+
 
 PORTFOLIO
 +--------+---------------+---------------+---------------+---------------+
 | Ticker | Daily P/L ($) | Daily P/L (%) | Total P/L ($) | Total P/L (%) |
 +--------+---------------+---------------+---------------+---------------+
-|  TSLA  |     -664.8    |     -5.09     |     3064.0    |     30.64     |
-|  GME   |     300.0     |      4.83     |     4209.0    |     210.45    |
+|   KO   |     -$1.06    |     -1.05%    |     $3.43     |     3.50%     |
+|   FB   |     -$6.88    |     -0.61%    |    $537.41    |     90.82%    |
+| ------ |     ------    |     ------    |     ------    |      ----     |
+| Total  |     -$7.94    |     -0.64%    |    $540.84    |     78.41%    |
 +--------+---------------+---------------+---------------+---------------+
 
-Last refresh : 09:27:27
+Last refresh : 14:19:23
 '''
 
 ## Setup
 To run this project, you must install requirements stated in requirements.txt file, which are the following :
-- console_menu==0.6.0
-- prettytable==2.0.0
-- beautifulsoup4==4.9.3
-- consolemenu==1.0.1
+- console_menu
+- prettytable
+- beautifulsoup4
+- consolemenu
 
 Once requirements are installed, you can simply run main.py and use the program through the CLI menu.
 
-## To do
-I plan on adding the following features :
-- Get portfolio total
-- Set a different currency
-- Add cash balance
+## To do (features that could be added in the future)
+- Output data in a different currency.
+- Add cash balance.
+
+## Issues (to fix)
+- Portfolio total may have a small error when refreshing, as total refreshes after each ticker refreshes (and values changes each second during when market is live).
