@@ -1,22 +1,17 @@
 ## Description
 Command-line interface stock tracker to get basic stock informations using Yahoo Finance! in the form of a watchlist and a portfolio.
 
-## What have I learned ?
-- Web scraping (with BeautifulSoup)
-- CLI formatting
-- SQLite3
-
 ## How does it work ?
-This program works in a command-line interface. 
+This program works in a command-line interface and has the following features : 
 
-WATCHLIST :
+Watchlist :
 User has the choice to input stock ticker in his watchlist to keep track of the stock price. 
 
-PORTFOLIO :
+Portfolio :
 User has the choice to input transactions to keep track of his portfolio value in real-time.
 
-STOCK TRACKER : 
-Once tickers and/or transactions has been input, user can launch live stock tracker. Then, the program scrapes data from Yahoo! Finance to give real-time data according to user input. Data refreshes every 45 seconds (editable).
+Stock tracker : 
+Once tickers and/or transactions has been input, user can launch live stock tracker. Then, the program scrapes data from Yahoo! Finance to give real-time data according to user input. Data refreshes every 45 seconds.
 
 ## Example
 
@@ -54,9 +49,15 @@ To run this project, you must install requirements stated in requirements.txt fi
 
 Once requirements are installed, you can simply run main.py and use the program through the CLI menu.
 
+## What have I learned with this project ?
+- Web scraping (with BeautifulSoup)
+- SQLite3
+- CLI formatting
+
 ## To do (features that could be added in the future)
 - Output data in a different currency.
 - Add cash balance.
+- Add option to change refresh frequency in the CLI menu.
 
 ## Issues (to fix)
 - Portfolio total may have a small error when refreshing, as total refreshes after each ticker refreshes (and values changes each second during when market is live).
